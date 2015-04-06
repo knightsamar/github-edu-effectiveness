@@ -1,5 +1,5 @@
 from github import Github
-from utils import get_all_related_repos, get_all_commits_on_repos, get_all_pull_requests
+from utils import get_all_related_repos, get_all_commits_on_repos, get_all_pull_requests, tzutc, tzlocal
 import csv
 
 class GithubInfo:
@@ -14,12 +14,13 @@ class GithubInfo:
     def forks_info(self):
         self.repos = get_all_related_repos(self.r)
         with open('forks.csv','w') as fcsv:
-            fieldnames = ['owner', 'repo']
+            fieldnames = ['owner', 'repo', 'created_at']
             w = csv.DictWriter(fcsv, fieldnames)
 
             w.writeheader()
             for o,r in self.repos.items():
-                w.writerow({'owner':o, 'repo':r.name})
+                created_at_ist = r.created_at.replace(tzinfo=tzutc()).astimezone(tzlocal()).ctime()
+                w.writerow({'owner':o, 'repo':r.name, 'created_at': created_at_ist})
 
             fcsv.flush()
 
