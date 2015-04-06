@@ -3,6 +3,10 @@ logger = logging.getLogger()
 x = logging.StreamHandler()
 logger.addHandler(x)
 
+from dateutil.parser import parse
+from dateutil.tz import tzlocal, tzutc
+from datetime import datetime
+
 repos = {}
 commits = {}
 pull_requests = {}
@@ -23,8 +27,12 @@ def get_all_commits_on_repos(repos):
     for r in repos.values():
         cs = r.get_commits()
         for c in cs:
-            print "c", c
-            commits[c.sha] = {'author':c.author.name, 'committer' : c.committer.name, 'repo': r.name, 'repo_url' : r.url, 'date': c.commit.last_modified, 'comment': c.commit.message}
+            if c.commit.last_modified is not None:
+                date_ist = parse(c.commit.last_modified).astimezone(tzlocal()).ctime()
+            else:
+                date_ist = None
+
+            commits[c.sha] = {'author':c.author.name, 'committer' : c.committer.name, 'repo': r.name, 'repo_url' : r.url, 'date':  date_ist, 'comment': c.commit.message}
             if c.author.name is None or c.author.name.strip() == '':
                 commits[c.sha]['author'] = c.author.login
 
@@ -37,7 +45,13 @@ def get_all_pull_requests(r):
     '''Gets all pull requests for the repo r, regardless of whether they are open or closed'''
     
     for p in r.get_pulls(state='all'):
-        pull_requests[p.id] = {'user': p.user.name, 'created_at': p.created_at, 'closed_at':p.closed_at, 'additions':p.additions, 'deletions':p.deletions, 'changed_files': p.changed_files, 'review_comments' : p.review_comments, 'merged' : p.is_merged()}
+        created_at_ist = p.created_at.replace(tzinfo=tzutc()).astimezone(tzlocal()).ctime()
+        if p.closed_at is not None:
+            closed_at_ist = p.closed_at.replace(tzinfo=tzutc()).astimezone(tzlocal()).ctime()
+        else:
+            closed_at_ist = None
+
+        pull_requests[p.id] = {'user': p.user.name, 'created_at': created_at_ist, 'closed_at': closed_at_ist, 'additions':p.additions, 'deletions':p.deletions, 'changed_files': p.changed_files, 'review_comments' : p.review_comments, 'merged' : p.is_merged()}
 
         if p.user.name is None or p.user.name.strip() == '':
             pull_requests[p.id]['user'] = p.user.login
