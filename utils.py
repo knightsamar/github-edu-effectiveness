@@ -14,11 +14,14 @@ pull_requests = {}
 def get_all_related_repos(r):
     'retrieves all forks and any forks of these forks and so on of a given repo'
     for r in r.get_forks():
-       repos[r.owner.name] = r #record
+        if r.owner.name is None: #Some users don't fill the name...apparently!
+            repos[r.owner.login] = r
+        else:
+            repos[r.owner.name] = r
 
-       if r.forks_count > 0:
-           print "This has been further forked...printing them"
-           get_all_related_repos(r)
+        if r.forks_count > 0:
+            print "This has been further forked...printing them"
+            get_all_related_repos(r)
 
     return repos
 

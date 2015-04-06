@@ -14,13 +14,13 @@ class GithubInfo:
     def forks_info(self):
         self.repos = get_all_related_repos(self.r)
         with open('forks.csv','w') as fcsv:
-            fieldnames = ['owner', 'repo', 'created_at']
+            fieldnames = ['owner', 'repo', 'created_at', 'forked_from_repo_by']
             w = csv.DictWriter(fcsv, fieldnames)
 
             w.writeheader()
             for o,r in self.repos.items():
                 created_at_ist = r.created_at.replace(tzinfo=tzutc()).astimezone(tzlocal()).ctime()
-                w.writerow({'owner':o, 'repo':r.name, 'created_at': created_at_ist})
+                w.writerow({'owner':o, 'repo':r.name, 'created_at': created_at_ist, 'forked_from_repo_by':r.source.owner.login})
 
             fcsv.flush()
 
