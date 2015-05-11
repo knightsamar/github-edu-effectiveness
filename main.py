@@ -1,15 +1,19 @@
+import github
 from github import Github
 from utils import get_all_related_repos, get_all_commits_on_repos, get_all_pull_requests, tzutc, tzlocal
 import csv
+from store import store_events_for_user, get_events_aggregates
 
 class GithubInfo:
     r = None
     repos = {}
     commits = {}
     pull_requests = {}
+    g = None
 
-    def __init__(self, user = 'gayatrivenugopal', repo = "MobileTechnologies"):
-        self.r = g.get_user(user).get_repo(repo)
+    def __init__(self, login = '', password = '', user = 'gayatrivenugopal', repo = "MobileTechnologies"):
+        self.g = Github(login_or_token=login, password=password) #Use your username and password for getting over rate limit.
+        self.r = self.g.get_user(user).get_repo(repo)
 
     def forks_info(self):
         self.repos = get_all_related_repos(self.r)
@@ -50,13 +54,37 @@ class GithubInfo:
 
             prcsv.flush()
 
+    def store_all_user_events_info(self):
+        '''
+        Stores ALL events of ALL 'relevant' users
+
+        In this case relevant users are all those users who have forked our original repo.
+        '''
+        with open('forks.csv','r') as fcsv:
+            forks = csv.DictReader(fcsv)
+
+            for f in forks:
+                try:
+                    u = self.g.get_user(f['owner'])
+
+                    if type(u) is not github.NamedUser.NamedUser:
+                        print "ERROR: Cannot process ",f
+                        continue
+
+                    print u
+                    store_events_for_user(u)
+                except Exception as e:
+                    print e
+
 if __name__ == "__main__":
     
     #Initiate API connection
-    g = Github(login_or_token=None,password=None) #Use your username and password for getting over rate limit.
-    
-    gi = GithubInfo(user='gayatrivenugopal', repo='MobileTechnologies') #Initate our Info gatherer
+    #specify a username and password to get over the rate limit of GitHub API
+    gi = GithubInfo(login = '', password = '', user = 'gayatrivenugopal', repo = 'MobileTechnologies') #Initate our Info gatherer
 
-    gi.forks_info()
-    gi.commits_info()
-    gi.pull_request_info()
+    #gi.forks_info()
+    #gi.commits_info()
+    #gi.pull_request_info()
+    #gi.get_all_forkers()
+    #gi.store_all_user_events_info()
+    get_events_aggregates()

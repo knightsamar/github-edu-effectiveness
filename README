@@ -1,7 +1,8 @@
 Usage
 =====
+0. Install python-pip, mongo db(http://docs.mongodb.org/master/administration/install-on-linux/)
 
 1. virtualenv venv
-1. . ./venv/bin/activate
-1. pip install -r requirements.txt
-1. python main.py
+2. . ./venv/bin/activate
+3. pip install -r requirements.txt
+4. python main.py
