@@ -1,8 +1,8 @@
 import github
 from github import Github
-from utils import get_all_related_repos, get_all_commits_on_repos, get_all_pull_requests, tzutc, tzlocal
+from utils import get_all_related_repos, get_all_commits_on_repos, get_all_pull_requests, tzutc, tzlocal, get_events_aggregates_for_user
 import csv
-from store import store_events_for_user, get_events_aggregates
+from store import store_events_for_user
 
 class GithubInfo:
     r = None
@@ -76,6 +76,38 @@ class GithubInfo:
                 except Exception as e:
                     print e
 
+
+    def get_all_user_events(self):
+        #get all types of aggregates that are available
+        fieldnames = get_events_aggregates_for_user(None)
+        fieldnames.append('user')
+
+        #get figure for each user
+        with open('forks.csv','r') as fcsv:
+            forks = csv.DictReader(fcsv)
+            for f in forks:
+                try:
+                    #STEP 1: get an user
+                    u = self.g.get_user(f['owner'])
+
+                    if type(u) is not github.NamedUser.NamedUser:
+                        print "ERROR: Cannot process ",f
+                        continue
+
+                    #STEP 2: get all event aggregates for that user
+                    event_aggregates = {'user' : u.login}
+                    event_aggregates.update(get_events_aggregates_for_user(u))
+
+                    #STEP 3: write down all the event aggregates in csv
+                    with open('user_events.csv','a') as uecsv:
+                        w = csv.DictWriter(uecsv, fieldnames, restval=0)
+                        w.writeheader()
+                        w.writerow(event_aggregates)
+
+                        uecsv.flush()
+                except Exception as e:
+                    print e
+
 if __name__ == "__main__":
     
     #Initiate API connection
@@ -87,4 +119,4 @@ if __name__ == "__main__":
     #gi.pull_request_info()
     #gi.get_all_forkers()
     #gi.store_all_user_events_info()
-    get_events_aggregates()
+    gi.get_all_user_events()

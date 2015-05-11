@@ -6,6 +6,8 @@ logger.addHandler(x)
 from dateutil.parser import parse
 from dateutil.tz import tzlocal, tzutc
 from datetime import datetime
+import github
+from store import connect
 
 repos = {}
 commits = {}
@@ -60,3 +62,38 @@ def get_all_pull_requests(r):
             pull_requests[p.id]['user'] = p.user.login
 
     return pull_requests
+
+def get_events_aggregates_for_user(u):
+    '''
+    Get aggregates of all type of events for a user.
+    If an user is not specified, returns all type of events that are available.
+    '''
+    if type(u) is github.NamedUser.NamedUser:
+        username = u.login
+    elif type(u) is unicode or type(u) is str:
+        username = u
+    else:
+        username = None
+
+
+    events_collection = connect()['events']
+
+    if username is not None:
+
+        cursor = events_collection.aggregate(
+                [
+
+                    {"$match" : {"actor.login" : username }},
+                    {"$group" : {"_id" : "$type", "count":{"$sum":1}}} #group the sum
+                ]
+            )
+
+        event_aggregates = {}
+
+        for d in cursor:
+            event_aggregates[d['_id']] = d['count']
+
+        return event_aggregates
+    else:
+        return events_collection.distinct('type')
+
