@@ -16,41 +16,72 @@ class GithubInfo:
         self.r = self.g.get_user(user).get_repo(repo)
 
     def forks_info(self):
+        print "Getting and storing info about all the forks of %s/%s in forks.csv" % (self.r.owner.login, self.r.name)
+
         self.repos = get_all_related_repos(self.r)
         with open('forks.csv','w') as fcsv:
-            fieldnames = ['owner', 'repo', 'created_at', 'forked_from_repo_by']
+            fieldnames = ['owner', 'owner_username', 'repo', 'created_at', 'forked_from_repo_by']
             w = csv.DictWriter(fcsv, fieldnames)
 
             w.writeheader()
             for o,r in self.repos.items():
                 created_at_ist = r.created_at.replace(tzinfo=tzutc()).astimezone(tzlocal()).ctime()
-                w.writerow({'owner':o, 'repo':r.name, 'created_at': created_at_ist, 'forked_from_repo_by':r.source.owner.login})
+                w.writerow({
+                    'owner':o,
+                    'owner_username': r.owner.login,
+                    'repo':r.name,
+                    'created_at': created_at_ist,
+                    'forked_from_repo_by':r.source.owner.login
+                    })
 
             fcsv.flush()
 
     def commits_info(self):
+        print "Getting and storing info about all the commits of various 'interesting' users in commits.csv"
         self.commits = get_all_commits_on_repos(self.repos)
 
         with open('commits.csv','w') as ccsv:
-            fieldnames = ['sha', 'author', 'committer', 'repo','repo_url', 'date', 'comment',]
+            fieldnames = ['sha', 'author', 'author_username', 'committer', 'committer_username', 'repo','repo_url', 'date', 'comment',]
             w = csv.DictWriter(ccsv, fieldnames)
         
             w.writeheader()
             for sha,commit in self.commits.items():
-                w.writerow({'sha': sha, 'author':commit['author'], 'committer': commit['committer'], 'repo' : commit['repo'], 'repo_url' : commit['repo_url'], 'date': commit['date'], 'comment': commit['comment']})
+                w.writerow({
+                    'sha' : sha,
+                    'author' : commit['author'],
+                    'author_username' : commit['author_username'],
+                    'committer' : commit['committer'],
+                    'committer_username' : commit['committer_username'],
+                    'repo' : commit['repo'],
+                    'repo_url' : commit['repo_url'],
+                    'date': commit['date'],
+                    'comment': commit['comment']
+                })
 
             ccsv.flush()
 
     def pull_request_info(self):
+        print "Getting and storing info about all the pull requests on %s/%s in pull_requests.csv" % (self.r.owner.login, self.r.name)
         self.pull_requests = get_all_pull_requests(self.r)
 
         with open('pull_requests.csv','w') as prcsv:
-            fieldnames = ['id','user','created_at','closed_at', 'additions', 'deletions', 'changed_files', 'review_comments','merged']
+            fieldnames = ['id','user','username','created_at','closed_at', 'additions', 'deletions', 'changed_files', 'review_comments','merged']
             w = csv.DictWriter(prcsv, fieldnames)
         
             w.writeheader()
             for i,pr in self.pull_requests.items(): #because id is a built-in function, we use the variable i
-                w.writerow({'id': i, 'user': pr['user'], 'created_at': pr['created_at'], 'closed_at' : pr['closed_at'], 'additions':pr['additions'], 'deletions':pr['deletions'], 'changed_files': pr['changed_files'], 'review_comments' : pr['review_comments'], 'merged' : pr['merged']})
+                w.writerow({
+                    'id': i,
+                    'user': pr['user'],
+                    'username':pr['username'],
+                    'created_at': pr['created_at'],
+                    'closed_at' : pr['closed_at'],
+                    'additions':pr['additions'],
+                    'deletions':pr['deletions'],
+                    'changed_files': pr['changed_files'],
+                    'review_comments' : pr['review_comments'],
+                    'merged' : pr['merged']
+                })
 
             prcsv.flush()
 
@@ -60,6 +91,8 @@ class GithubInfo:
 
         In this case relevant users are all those users who have forked our original repo.
         '''
+        print "Getting and storing info about all the events performed various 'interesting' users in a Mongodb database"
+
         with open('forks.csv','r') as fcsv:
             forks = csv.DictReader(fcsv)
 
@@ -78,6 +111,8 @@ class GithubInfo:
 
 
     def get_all_user_events(self):
+        print "Getting and storing info about all the events performed various 'interesting' users from a Mongodb database to user_events.csv"
+
         #get all types of aggregates that are available
         fieldnames = get_events_aggregates_for_user(None)
         fieldnames.append('user')
@@ -88,7 +123,7 @@ class GithubInfo:
             for f in forks:
                 try:
                     #STEP 1: get an user
-                    u = self.g.get_user(f['owner'])
+                    u = self.g.get_user(f['owner_username'])
 
                     if type(u) is not github.NamedUser.NamedUser:
                         print "ERROR: Cannot process ",f

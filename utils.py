@@ -37,7 +37,17 @@ def get_all_commits_on_repos(repos):
             else:
                 date_ist = None
 
-            commits[c.sha] = {'author':c.author.name, 'committer' : c.committer.name, 'repo': r.name, 'repo_url' : r.url, 'date':  date_ist, 'comment': c.commit.message}
+            commits[c.sha] = {
+                    'author':c.author.name,
+                    'author_username' : c.author.login,
+                    'committer' : c.committer.name,
+                    'committer_username' : c.committer.login,
+                    'repo': r.name,
+                    'repo_url' : r.url,
+                    'date':  date_ist,
+                    'comment': c.commit.message
+                }
+
             if c.author.name is None or c.author.name.strip() == '':
                 commits[c.sha]['author'] = c.author.login
 
@@ -56,7 +66,17 @@ def get_all_pull_requests(r):
         else:
             closed_at_ist = None
 
-        pull_requests[p.id] = {'user': p.user.name, 'created_at': created_at_ist, 'closed_at': closed_at_ist, 'additions':p.additions, 'deletions':p.deletions, 'changed_files': p.changed_files, 'review_comments' : p.review_comments, 'merged' : p.is_merged()}
+        pull_requests[p.id] = {
+                'user': p.user.name,
+                'username' : p.user.login,
+                'created_at': created_at_ist,
+                'closed_at': closed_at_ist,
+                'additions':p.additions,
+                'deletions':p.deletions,
+                'changed_files': p.changed_files,
+                'review_comments' : p.review_comments,
+                'merged' : p.is_merged()
+            }
 
         if p.user.name is None or p.user.name.strip() == '':
             pull_requests[p.id]['user'] = p.user.login
