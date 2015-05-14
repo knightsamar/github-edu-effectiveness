@@ -18,13 +18,13 @@ def connect(dbname='github-edu-effectiveness'):
     db = c[dbname]
     return db
 
-def store_events_for_user(u):
+def store_events_for_user(u, collection='events'):
     '''
-    Gets and stores all the events for a given user
+    Gets and stores all the events for a given user inside given MongoDB collection
     '''
     
     print "Storing events for user", u.login
-    events_collection = connect()['events']
+    events_collection = connect()[collection]
 
     events_from_github = u.get_events()
     print type(events_from_github)
