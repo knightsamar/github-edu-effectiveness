@@ -9,6 +9,7 @@ class GitHubEventsInfo(object):
     forks_created = None
     issues_created = None
     issues_resolved = None
+    repositories_created = None
 
     def __init__(self, username):
         try:
@@ -261,3 +262,30 @@ class GitHubEventsInfo(object):
             }
 
         return self.issues_resolved
+
+    #TODO: Actually ensure that the repos are not FORKS!
+    def get_repositories_created(self):
+        '''
+        get the details of any repositories that were created by the user
+        which are NOT forks (as they are already covered by get_forks_made)
+
+        1. repos created before the course started
+        2. repos created after the course ended
+        '''
+
+        #get data
+        db = connect()
+        repos_created = db.events.find({
+            'actor.login'       : self.username,
+            'type'              : 'CreateEvent',
+            'payload.ref_type'  : 'repository',
+        })
+
+        #store data
+        self.repositories_created = {}
+        self.repositories_created = {
+                'count'     : repos_created.count(),
+                'repos'     : repos_created.distinct('repo.name')
+                }
+
+        return self.repositories_created
