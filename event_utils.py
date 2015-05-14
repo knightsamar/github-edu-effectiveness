@@ -7,6 +7,8 @@ class GitHubEventsInfo(object):
     commits_made = None
     pull_requests_made = None
     forks_created = None
+    issues_created = None
+    issues_resolved = None
 
     def __init__(self, username):
         try:
@@ -148,3 +150,111 @@ class GitHubEventsInfo(object):
                 }
 
         return self.forks_created
+
+    def get_issues_created(self):
+        '''
+        Gets the details of any issues OPENED or REOPENED by the user on
+
+        1. the course repo
+        2. fork of the course repo
+        3. other repos before the course started
+        4. other repos after the course ended
+        '''
+        #TODO: Further filter the issues based on date as required by 3) and 4) above
+        db = connect()
+
+        #get data
+        on_course_repo = db.events.find({
+            'actor.login'   : self.username,
+            'repo.name'     : COURSE_REPO,
+            'type'          : 'IssuesEvent',
+            'payload.action': { '$in' : ['opened','reopened']},
+            })
+
+        on_course_repo_fork = db.events.find({
+            'actor.login'   : self.username,
+            'repo.name'     : '%s/%s' % (self.username, COURSE_REPO_NAME),
+            'type'          : 'IssuesEvent',
+            'payload.action': { '$in' : ['opened','reopened']},
+            })
+
+        on_other_repos = db.events.find({
+            'actor.login'   : self.username,
+            'repo.name'     : {'$nin' : [COURSE_REPO, '%s/%s' % (self.username, COURSE_REPO_NAME)]},
+            'type'          : 'IssuesEvent',
+            'payload.action': { '$in' : ['opened','reopened']},
+            })
+
+        #store the data
+        self.issues_created = {}
+
+        self.issues_created['on_course_repo'] = {
+            'count'         : on_course_repo.count(),
+            'repos'         : on_course_repo.distinct('repo.name'),
+            }
+
+        self.issues_created['on_course_repo_fork'] = {
+            'count'         : on_course_repo_fork.count(),
+            'repos'         : on_course_repo_fork.distinct('repo.name'),
+            }
+
+        self.issues_created['on_other_repos'] = {
+            'count'         : on_other_repos.count(),
+            'repos'         : on_other_repos.distinct('repo.name'),
+            }
+
+        return self.issues_created
+
+    def get_issues_resolved(self):
+        '''
+        Gets the details of any issues CLOSED by the user on
+
+        1. the course repo
+        2. fork of the course repo
+        3. other repos before the course started
+        4. other repos after the course ended
+        '''
+        #TODO: Further filter the issues based on date as required by 3) and 4) above
+        db = connect()
+
+        #get data
+        on_course_repo = db.events.find({
+            'actor.login'   : self.username,
+            'repo.name'     : COURSE_REPO,
+            'type'          : 'IssuesEvent',
+            'payload.action': 'closed',
+            })
+
+        on_course_repo_fork = db.events.find({
+            'actor.login'   : self.username,
+            'repo.name'     : '%s/%s' % (self.username, COURSE_REPO_NAME),
+            'type'          : 'IssuesEvent',
+            'payload.action': 'closed',
+            })
+
+        on_other_repos = db.events.find({
+            'actor.login'   : self.username,
+            'repo.name'     : {'$nin' : [COURSE_REPO, '%s/%s' % (self.username, COURSE_REPO_NAME)]},
+            'type'          : 'IssuesEvent',
+            'payload.action': 'closed',
+            })
+
+        #store the data
+        self.issues_resolved = {}
+
+        self.issues_resolved['on_course_repo'] = {
+            'count'         : on_course_repo.count(),
+            'repos'         : on_course_repo.distinct('repo.name'),
+            }
+
+        self.issues_resolved['on_course_repo_fork'] = {
+            'count'         : on_course_repo_fork.count(),
+            'repos'         : on_course_repo_fork.distinct('repo.name'),
+            }
+
+        self.issues_resolved['on_other_repos'] = {
+            'count'         : on_other_repos.count(),
+            'repos'         : on_other_repos.distinct('repo.name'),
+            }
+
+        return self.issues_resolved
