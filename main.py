@@ -98,7 +98,7 @@ class GithubInfo:
 
             for f in forks:
                 try:
-                    u = self.g.get_user(f['owner'])
+                    u = self.g.get_user(f['owner_username'])
 
                     if type(u) is not github.NamedUser.NamedUser:
                         print "ERROR: Cannot process ",f

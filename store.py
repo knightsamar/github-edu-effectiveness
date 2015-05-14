@@ -23,7 +23,7 @@ def store_events_for_user(u):
     Gets and stores all the events for a given user
     '''
     
-    print "Storing events for user", u
+    print "Storing events for user", u.login
     events_collection = connect()['events']
 
     events_from_github = u.get_events()
