@@ -21,8 +21,6 @@ class GitHubEventsInfo(object):
             print e
 
     def get_commits_made(self):
-        #TODO: Further filter the commits on other repos based on date.
-
         '''
         Gives back:
         
@@ -32,6 +30,9 @@ class GitHubEventsInfo(object):
         number of commits made on other repos after the course ended
 
         '''
+        #TODO: Further filter the commits on other repos based on date.
+
+        #get data
         db = connect()
         on_course_repo = db.events.find({
             'actor.login'  : self.username,
@@ -50,32 +51,31 @@ class GitHubEventsInfo(object):
             'repo.name'    : {'$nin' : [COURSE_REPO, '%s/%s' % (self.username, COURSE_REPO_NAME)]},
             'type'         : 'PushEvent',
         })
-        
-        self.commits_made = {}
 
+        #store data
+        self.commits_made = {}
         self.commits_made['on_course_repo'] = {
-                'push'     : on_course_repo.count(), #total pushes
-                'commit'   : sum([push['payload']['size'] for push in on_course_repo],0), #sum total of commits in each push
-                'repo'      : on_course_repo.distinct('repo.name')
+                'pushes'    : on_course_repo.count(), #total pushes
+                'commits'   : sum([push['payload']['size'] for push in on_course_repo],0), #sum total of commits in each push
+                'repos'     : on_course_repo.distinct('repo.name')
                 }
 
         self.commits_made['on_course_repo_fork'] = {
-                'push'     : on_course_repo_fork.count(),
-                'commit'   : sum([push['payload']['size'] for push in on_course_repo_fork],0),
-                'repo'      : on_course_repo_fork.distinct('repo.name'),
+                'pushes'    : on_course_repo_fork.count(),
+                'commits'   : sum([push['payload']['size'] for push in on_course_repo_fork],0),
+                'repos'     : on_course_repo_fork.distinct('repo.name'),
                 }
 
         self.commits_made['on_other_repos'] = {
-                'push'     : on_other_repos.count(),
-                'commit'   : sum([push['payload']['size'] for push in on_other_repos],0),
-                'repo'     : on_other_repos.distinct('repo.name'),
+                'pushes'    : on_other_repos.count(),
+                'commits'   : sum([push['payload']['size'] for push in on_other_repos],0),
+                'repos'     : on_other_repos.distinct('repo.name'),
                 }
 
         return self.commits_made
 
+    #TODO: Further filter the pull requests on other repos based on date.
     def get_pull_requests_made(self):
-        #TODO: Further filter the pull requests on other repos based on date.
-
         '''
         Gives back:
         
@@ -85,6 +85,7 @@ class GitHubEventsInfo(object):
         number of pull requests made on other repos after the course ended
 
         '''
+        #get data
         db = connect()
         on_course_repo = db.events.find({
             'actor.login'  : self.username,
@@ -98,23 +99,25 @@ class GitHubEventsInfo(object):
             'type'         : 'PullRequestEvent',
         })
         
+        #store data
         self.pull_requests_made = {}
 
         self.pull_requests_made['on_course_repo'] = {
                 'count'      : on_course_repo.count(), #total pull requests
-                'repo'       : on_course_repo.distinct('repo.name')
+                'repos'      : on_course_repo.distinct('repo.name')
 
                 }
 
         self.pull_requests_made['on_other_repos'] = {
                 'count'    : on_other_repos.count(),
-                'repo'     : on_other_repos.distinct('repo.name'),
+                'repos'    : on_other_repos.distinct('repo.name'),
                 }
 
         return self.pull_requests_made
 
+    #TODO: GET AND STORE all get_forks() data for all users in a forks collection in MongoDB and use it here.
+    #TODO: Further filter the forks based on date.
     def get_forks_created(self):
-        #TODO: Further filter the commits on other repos based on date.
         '''
         get the details of any forks that were created by the user of
 
@@ -122,7 +125,8 @@ class GitHubEventsInfo(object):
         other repos before the course started
         other repos after the course ended
         '''
-        #TODO: GET AND STORE all get_forks() data for all users in a forks collection in MongoDB and use it here.
+
+        #get data
         db = connect()
         of_course_repo = db.events.find({
             'actor.login'   : self.username,
@@ -136,9 +140,8 @@ class GitHubEventsInfo(object):
             'type'             : 'ForkEvent',
         })
 
-
+        #store data
         self.forks_created = {}
-
         self.forks_created['of_course_repo'] = {
                 'count'      : of_course_repo.count(), #total forks created -- I know this weird but it is 0400 hrs and I hv more imp things in code to worry about
                 'fork_of'    : of_course_repo.distinct('repo.name')
