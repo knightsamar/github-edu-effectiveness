@@ -9,6 +9,7 @@ class GithubInfo:
     repos = {}
     commits = {}
     pull_requests = {}
+    events_analysis = {}
     g = None
 
     def __init__(self, login = '', password = '', user = 'gayatrivenugopal', repo = "MobileTechnologies"):
@@ -110,7 +111,7 @@ class GithubInfo:
                     print e
 
 
-    def get_all_user_events(self):
+    def get_all_user_event_aggregates(self):
         print "Getting and storing info about all the events performed various 'interesting' users from a Mongodb database to user_events.csv"
 
         #get all types of aggregates that are available
@@ -142,6 +143,44 @@ class GithubInfo:
                         uecsv.flush()
                 except Exception as e:
                     print e
+    def store_all_user_events_analysis(self):
+        '''
+        use the event_utils module to obtain and dump JSON analysis
+        of all user events for all interesting users
+        '''
+        from event_utils import GitHubEventsInfo
+
+        with open('forks.csv','r') as fcsv:
+            forks = csv.DictReader(fcsv)
+            for f in forks:
+                try:
+                    u = self.g.get_user(f['owner_username'])
+
+                    #STEP 1: get user
+                    if type(u) is not github.NamedUser.NamedUser:
+                        print "ERROR: Cannot process ",f
+                        continue
+
+                    #STEP 2: get user_event_analysis for that user
+                    self.events_analysis[u.login] = {}
+
+                    uea = GitHubEventsInfo(u)
+
+                    self.events_analysis[u.login]['commits_made'] = uea.get_commits_made()
+                    self.events_analysis[u.login]['forks_created'] = uea.get_forks_created()
+                    self.events_analysis[u.login]['pull_requests_made'] = uea.get_pull_requests_made()
+                    self.events_analysis[u.login]['issues_created'] = uea.get_issues_created()
+                    self.events_analysis[u.login]['issues_resolved'] = uea.get_issues_resolved()
+                    self.events_analysis[u.login]['repositories_created'] = uea.get_repositories_created()
+                except Exception as e:
+                    print e
+
+        #STEP 3: Serialize the user_events_analysis
+        with open('user_events_analysis.json','a') as ueajson:
+            import json
+            json.dump(self.events_analysis, ueajson, indent=4)
+
+            ueajson.flush()
 
 if __name__ == "__main__":
     
@@ -152,6 +191,6 @@ if __name__ == "__main__":
     #gi.forks_info()
     #gi.commits_info()
     #gi.pull_request_info()
-    #gi.get_all_forkers()
     #gi.store_all_user_events_info()
-    gi.get_all_user_events()
+    #gi.get_all_user_event_aggregates()
+    gi.store_all_user_events_analysis()
