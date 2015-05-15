@@ -1,5 +1,5 @@
 from store import connect
-from github import Github
+from github import Github, NamedUser
 from settings import COURSE_REPO, COURSE_REPO_NAME
 
 class GitHubEventsInfo(object):
@@ -12,14 +12,18 @@ class GitHubEventsInfo(object):
     repositories_created = None
 
     def __init__(self, username):
-        try:
-            u = Github().get_user(username)
+        if type(username) is unicode or type(username) is str:
+            u = Github().get_user(username) #verify that such user exists on Github
             if u is not None:
                 self.username = username
             else:
-                return False
-        except Exception as e:
-            print e
+                raise Exception("No such user exists on Github currently! Aborting!")
+        elif type(username) is NamedUser.NamedUser:
+            self.username = username.login
+        else:
+            raise Exception("Not a valid username!")
+
+        print "Username :" self.username
 
     def get_commits_made(self):
         '''
@@ -267,7 +271,7 @@ class GitHubEventsInfo(object):
     def get_repositories_created(self):
         '''
         get the details of any repositories that were created by the user
-        which are NOT forks (as they are already covered by get_forks_made)
+        which are NOT forks (as they are already covered by get_forks_created)
 
         1. repos created before the course started
         2. repos created after the course ended
