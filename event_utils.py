@@ -23,7 +23,7 @@ class GitHubEventsInfo(object):
         else:
             raise Exception("Not a valid username!")
 
-        print "Username :" self.username
+        print "Username :", self.username
 
     def get_commits_made(self):
         '''
