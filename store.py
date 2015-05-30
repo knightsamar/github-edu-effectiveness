@@ -1,7 +1,7 @@
 #builds a db store using the Github data
 import github
 from pymongo import MongoClient
-
+from settings import MONGO_HOST, MONGO_PORT, MONGO_DB
 '''
 Why do we store the data when we can get it from GitHub API anytime we need?
 
@@ -12,9 +12,9 @@ We often need data older than that.
 It is easier to do that using a local db store like MongoDB
 '''
 
-def connect(dbname='github-edu-effectiveness'):
+def connect(dbname=MONGO_DB):
     '''Connects and returns a Database object for use'''
-    c = MongoClient()
+    c = MongoClient(host=MONGO_HOST, port=MONGO_PORT)
     db = c[dbname]
     return db
 
