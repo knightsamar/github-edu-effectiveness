@@ -179,6 +179,7 @@ class GithubInfo:
                     self.events_analysis[u.login]['issues_resolved'] = uea.get_issues_resolved()
                     self.events_analysis[u.login]['repositories_created'] = uea.get_repositories_created()
                 except Exception as e:
+                    print type(e)
                     print e
 
         #STEP 3: Serialize the user_events_analysis
