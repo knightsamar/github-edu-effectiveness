@@ -3,6 +3,7 @@ from github import Github
 from utils import get_all_related_repos, get_all_commits_on_repos, get_all_pull_requests, tzutc, tzlocal, get_events_aggregates_for_user
 import csv
 from store import store_events_for_user
+import settings
 
 class GithubInfo:
     r = None
@@ -186,7 +187,11 @@ if __name__ == "__main__":
     
     #Initiate API connection
     #specify a username and password to get over the rate limit of GitHub API
-    gi = GithubInfo(login = '', password = '', user = 'gayatrivenugopal', repo = 'MobileTechnologies') #Initate our Info gatherer
+    gi = GithubInfo(
+            login = settings.login,
+            password = '',
+            user = 'gayatrivenugopal', #Owner of the repo which is our research's starting point for analysis
+            repo = 'MobileTechnologies') #Name ofthe repo which is our research's starting point for analysis
 
     #gi.forks_info()
     #gi.commits_info()
