@@ -1,0 +1,10 @@
+COURSE_REPO_NAME ='MobileTechnologies'
+COURSE_REPO_OWNER ='gayatrivenugopal'
+COURSE_REPO = COURSE_REPO_OWNER + "/" + COURSE_REPO_NAME
+
+login = '' #Put your GitHub access toke or username here
+password = '' #Put your GitHub password here ONLY if you are using an username
+
+MONGO_HOST = 'localhost'
+MONGO_PORT = 27017
+MONGO_DB = 'github-edu-effectiveness'
