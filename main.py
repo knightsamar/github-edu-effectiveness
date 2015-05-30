@@ -13,7 +13,12 @@ class GithubInfo:
     events_analysis = {}
     g = None
 
-    def __init__(self, login = '', password = '', user = 'gayatrivenugopal', repo = "MobileTechnologies"):
+    def __init__(self,
+            login = '',
+            password = '',
+            user = settings.COURSE_REPO_OWNER,
+            repo = settings.COURSE_REPO_NAME):
+
         self.g = Github(login_or_token=login, password=password) #Use your username and password for getting over rate limit.
         self.r = self.g.get_user(user).get_repo(repo)
 
@@ -189,13 +194,13 @@ if __name__ == "__main__":
     #specify a username and password to get over the rate limit of GitHub API
     gi = GithubInfo(
             login = settings.login,
-            password = '',
-            user = 'gayatrivenugopal', #Owner of the repo which is our research's starting point for analysis
-            repo = 'MobileTechnologies') #Name ofthe repo which is our research's starting point for analysis
+            password = settings.password,
+            user = settings.COURSE_REPO_OWNER, #Owner of the repo which is our research's starting point for analysis
+            repo = settings.COURSE_REPO_NAME) #Name ofthe repo which is our research's starting point for analysis
 
-    #gi.forks_info()
-    #gi.commits_info()
-    #gi.pull_request_info()
-    #gi.store_all_user_events_info()
-    #gi.get_all_user_event_aggregates()
+    gi.forks_info()
+    gi.commits_info()
+    gi.pull_request_info()
+    gi.store_all_user_events_info()
+    gi.get_all_user_event_aggregates()
     gi.store_all_user_events_analysis()
