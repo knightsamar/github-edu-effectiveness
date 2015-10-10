@@ -27,7 +27,7 @@ def get_json_file_names(from_hour, to_hour):
                 h.year, 
                 str(h.month).rjust(2,'0'), 
                 str(h.day).rjust(2,'0'), 
-                str(h.hour).rjust(2,'0')
+                str(h.hour).rjust(1,'0')
                 ))
     
     return json_files
