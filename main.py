@@ -199,9 +199,9 @@ if __name__ == "__main__":
             user = settings.COURSE_REPO_OWNER, #Owner of the repo which is our research's starting point for analysis
             repo = settings.COURSE_REPO_NAME) #Name ofthe repo which is our research's starting point for analysis
 
-    gi.forks_info()
-    gi.commits_info()
-    gi.pull_request_info()
-    gi.store_all_user_events_info()
-    gi.get_all_user_event_aggregates()
+    #gi.forks_info()
+    #gi.commits_info()
+    #gi.pull_request_info()
+    #gi.store_all_user_events_info()
+    #gi.get_all_user_event_aggregates()
     gi.store_all_user_events_analysis()
